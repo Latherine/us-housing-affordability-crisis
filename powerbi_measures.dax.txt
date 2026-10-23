@@ -1,0 +1,45 @@
+// DAX measures for the one-page dashboard (see Project_Progress_Notes.docx, section 9.2)
+// Create a _Measures table (Home > Enter data), then New measure for each block below.
+
+// ---------- REQUIRED: the 5 KPI cards ----------
+
+Starts Collapse % =
+DIVIDE (
+    CALCULATE ( SUM ( housing_starts_annual[housing_starts] ), housing_starts_annual[year] = 2011 ),
+    CALCULATE ( SUM ( housing_starts_annual[housing_starts] ), housing_starts_annual[year] = 2005 )
+) - 1
+
+Peak Payment Share =
+DIVIDE ( MAX ( affordability_yearly[payment_to_income_%] ), 100 )
+
+Rate Share of Increase =
+DIVIDE (
+    CALCULATE ( SUM ( payment_waterfall[amount] ), payment_waterfall[step] = "Higher mortgage rate" ),
+    CALCULATE ( SUM ( payment_waterfall[amount] ), payment_waterfall[order] > 1 )
+)
+
+Missing Homeowners Under 35 (M) =
+VAR households = CALCULATE ( SUM ( homeownership_by_age[total] ),
+    homeownership_by_age[year] = 2025, homeownership_by_age[age_group] = "Under 35" )
+VAR owners = CALCULATE ( SUM ( homeownership_by_age[owner] ),
+    homeownership_by_age[year] = 2025, homeownership_by_age[age_group] = "Under 35" )
+VAR rate2004 = CALCULATE ( SUM ( homeownership_by_age[ownership_rate] ),
+    homeownership_by_age[year] = 2004, homeownership_by_age[age_group] = "Under 35" )
+RETURN ( households * rate2004 / 100 - owners ) / 1000
+
+State Price Gap =
+DIVIDE ( MAX ( state_home_values[home_value_2026_03] ), MIN ( state_home_values[home_value_2026_03] ) )
+
+// ---------- OPTIONAL: only for a Details page ----------
+
+Payment 2021 =
+CALCULATE ( SUM ( affordability_yearly[monthly_payment] ), affordability_yearly[year] = 2021 )
+
+Payment 2023 =
+CALCULATE ( SUM ( affordability_yearly[monthly_payment] ), affordability_yearly[year] = 2023 )
+
+Payment Change % =
+DIVIDE ( [Payment 2023], [Payment 2021] ) - 1
+
+Real Price Growth =
+DIVIDE ( CALCULATE ( SUM ( affordability_yearly[real_HPI] ), affordability_yearly[year] = 2025 ), 100 ) - 1
